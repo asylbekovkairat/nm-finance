@@ -1,0 +1,56 @@
+<section class="create-todo">
+  <h1>Добавление задачи</h1>
+  <form [formGroup]="todoForm">
+    <mat-form-field>
+      <mat-label>Срок</mat-label>
+      <input
+        matInput
+        [matDatepicker]="datepicker"
+        formControlName="expirationDate"
+      />
+      <mat-datepicker-toggle
+        matIconSuffix
+        [for]="datepicker"
+      ></mat-datepicker-toggle>
+      <mat-datepicker #datepicker>
+        <mat-datepicker-actions>
+          <button mat-button matDatepickerCancel>Cancel</button>
+          <button mat-raised-button color="primary" matDatepickerApply>
+            Apply
+          </button>
+        </mat-datepicker-actions>
+      </mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Время истечения</mat-label>
+      <input
+        matInput
+        [ngxTimepicker]="timePicker"
+        [format]="24"
+        readonly
+        formControlName="expirationTime"
+        placeholder="Выберите время"
+        aria-label="Expiration Time"
+      />
+      <ngx-material-timepicker
+        #timePicker
+        [format]="24"
+      ></ngx-material-timepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+      <mat-label>Заголовок</mat-label>
+      <textarea
+        matInput
+        formControlName="title"
+        placeholder="Введите заголовок"
+        aria-label="Title"
+      ></textarea>
+    </mat-form-field>
+  </form>
+
+  <button mat-raised-button color="primary" (click)="onSubmit()">
+    Создать
+  </button>
+</section>

@@ -1,0 +1,28 @@
+.create-todo {
+  background-color: #d8d8d8;
+  color: black;
+  padding: 20px;
+  width: 50%;
+  margin-top: 30px !important;
+  margin: auto;
+
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  p > span {
+    font-weight: bold;
+  }
+
+  h1 {
+    margin-bottom: 20px;
+    font-weight: bold;
+    font-size: larger;
+  }
+
+  &-button-holder {
+    display: flex;
+    justify-content: end;
+  }
+}

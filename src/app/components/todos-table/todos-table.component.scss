@@ -1,0 +1,13 @@
+.table-wrapper {
+  margin-top: 35px;
+  border: 1px solid black;
+  .table-title {
+    background-color: silver;
+    padding: 15px 0px 20px 30px;
+    border-bottom: 1px solid black;
+  }
+
+  .table-content {
+    padding: 15px 0px 20px 30px;
+  }
+}
