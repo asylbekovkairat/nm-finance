@@ -20,7 +20,9 @@ import {
   asyncFutureDateValidator,
   timeValidator,
 } from 'app/utils/time.validator';
-import { TodoService } from 'app/services/todos.service';
+import { TodoService, TodoItem } from 'app/services/todos.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-create-todo',
@@ -44,20 +46,48 @@ export class CreateTodoComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   public todoForm!: FormGroup<{
     title: FormControl<string | null>;
-    expirationDate: FormControl<string | null>;
-    expirationTime: FormControl<string | null>;
+    expireDate: FormControl<string | null>;
+    expireTime: FormControl<string | null>;
   }>;
   private readonly todosService = inject(TodoService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly router = inject(Router);
 
   ngOnInit(): void {
     this.todoForm = this.formBuilder.group({
       title: ['', [Validators.required, Validators.maxLength(100)]],
-      expirationDate: ['', [Validators.required], [asyncFutureDateValidator()]],
-      expirationTime: ['', [timeValidator()]],
+      expireDate: ['', [Validators.required], [asyncFutureDateValidator()]],
+      expireTime: ['', [timeValidator()]],
     });
   }
 
-  public onSubmit(): void {
-    this.todosService.addTodo(this.todoForm.value);
+  public onSubmit() {
+    const title = this.getFormControl('title').value;
+    const expireDate = this.getFormControl('expireDate').value;
+    const expireTime = this.getFormControl('expireTime').value;
+
+    const newTodo: TodoItem = {
+      title,
+      expireTime,
+      expireDate: new Date(expireDate).getTime(),
+      createdAt: Date.now(),
+      id: Date.now(),
+      isFavorite: false,
+      done: false,
+    };
+
+    this.todosService.addTodo(newTodo).subscribe((response) => {
+      if (response.success) {
+        this.snackBar.open(response.message, 'OK', { duration: 2000 });
+        this.todoForm.reset();
+        this.router.navigate(['/list']);
+      }
+
+      this.snackBar.open(response.message, 'OK', { duration: 2000 });
+    });
+  }
+
+  private getFormControl(fieldName: string): FormControl {
+    return this.todoForm.get(fieldName) as FormControl;
   }
 }

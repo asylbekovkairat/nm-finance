@@ -1,52 +1,97 @@
 import { Injectable, inject } from '@angular/core';
-import { StorageMap } from '@ngx-pwa/local-storage';
-import { BehaviorSubject, delay } from 'rxjs';
-
-type TodoItem = {
-  expireDate: string;
-  expireTime: string;
+import { JSONSchema } from '@ngx-pwa/local-storage';
+import {
+  BehaviorSubject,
+  Observable,
+  catchError,
+  delay,
+  map,
+  of,
+  tap,
+} from 'rxjs';
+import { AsyncLocalStorageService } from './localStorage.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+export interface TodoItem {
+  id: number;
   title: string;
-};
-
-enum TodosParams {
-  ALL = 'all',
-  FAVORITE = 'favorite',
-  TODAY = 'today',
+  createdAt: number;
+  expireDate: number;
+  expireTime?: string;
+  isFavorite: boolean;
+  done: boolean;
 }
+
+const todoItemSchema = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      id: { type: 'number' },
+      title: { type: 'string' },
+      createdAt: { type: 'number' },
+      expireDate: { type: 'number' },
+      expireTime: { type: 'string' },
+      isFavorite: { type: 'boolean' },
+      done: { type: 'boolean' },
+    },
+    required: ['id', 'title', 'createdAt', 'expireDate', 'isFavorite'],
+  },
+} satisfies JSONSchema;
 
 @Injectable({ providedIn: 'root' })
 export class TodoService {
-  private readonly storage = inject(StorageMap);
-  private todosSubject = new BehaviorSubject<TodoItem[]>([]);
+  private readonly storage = inject(AsyncLocalStorageService);
+  private readonly todosSubject$ = new BehaviorSubject<TodoItem[]>([]);
+  public readonly todos$ = this.todosSubject$.asObservable();
 
-  public todos$ = this.todosSubject.asObservable();
-
-  public addTodo(newTodo: any) {
-    this.storage.set('todos', newTodo).subscribe(() => {});
-    this.storage.get('todos').subscribe((user) => {
-      console.log(user);
-    });
+  constructor() {
+    this.loadTodos();
+    // this.storage.clear();
+    // this.storage.clear().subscribe(() => {});
   }
 
-  public getTodos() {
-    console.log('asd');
-    this.storage.clear().subscribe(() => {});
+  public delete(id: number): void {
+    const updatedTodos = this.todosSubject$.value.filter(
+      (item) => item.id === id
+    );
 
+    this.storage.setItem('todos', updatedTodos);
+  }
+
+  public loadTodos(): void {
     this.storage
-      .get('todos')
+      .getItem<TodoItem[]>('todos', todoItemSchema)
       .pipe(delay(500))
       .subscribe({
         next: (todos) => {
-          console.log('todos', this.todosSubject.value);
-          if (todos && Array.isArray(todos)) {
-            this.todosSubject.next(todos || []);
-          }
+          if (Array.isArray(todos)) this.todosSubject$.next(todos || []);
         },
+
         error: (err) => console.log(err),
       });
+  }
 
-    this.storage.get('todos').subscribe((todos) => {
-      console.log(todos);
-    });
+  public addTodo(
+    newTodo: TodoItem
+  ): Observable<{ message: string; success: boolean }> {
+    const updatedTodos = [...this.todosSubject$.value, newTodo];
+
+    return this.storage.setItem('todos', updatedTodos).pipe(
+      delay(1000),
+      tap(() => this.todosSubject$.next(updatedTodos)),
+      map(() => {
+        const successMessage = `Task bla bla good`;
+        return {
+          message: successMessage,
+          success: true,
+        };
+      }),
+      catchError((err) => {
+        return of({
+          message: err,
+          success: false,
+        });
+      })
+    );
   }
 }

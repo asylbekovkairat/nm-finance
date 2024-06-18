@@ -1,6 +1,40 @@
 <section class="table-wrapper">
   <div class="table-title">
-    <h1>{{ todosVM.tableTitle }}</h1>
+    <h1>{{ tableTitle }}</h1>
   </div>
-  <div class="table-content">hello</div>
+  <div class="table-content">
+    <div class="todo-item" *ngFor="let item of todos | async">
+      <div>
+        <mat-checkbox></mat-checkbox>
+        {{ item.title }}
+      </div>
+
+      <section class="expire-date_wrapper">
+        <div class="expire-date_item">
+          <p>Created at</p>
+          <p>{{ getReadableDate(item.createdAt) }}</p>
+        </div>
+        <div class="expire-date_item" [ngSwitch]="tableTitle">
+          <div *ngSwitchCase="'Today Todos'">
+            <p>Time left</p>
+            <app-countdown-timer [expireDate]="item.expireDate" />
+          </div>
+
+          <div *ngSwitchCase="'All Todos'">
+            <p>Expiration</p>
+            <p>{{ getReadableDate(item.expireDate) }}</p>
+          </div>
+        </div>
+
+        <section class="actions_wrapper">
+          <button mat-icon-button>
+            <mat-icon>favorite</mat-icon>
+          </button>
+          <button mat-icon-button>
+            <mat-icon>delete</mat-icon>
+          </button>
+        </section>
+      </section>
+    </div>
+  </div>
 </section>

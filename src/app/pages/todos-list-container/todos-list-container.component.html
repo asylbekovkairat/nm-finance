@@ -1,4 +1,4 @@
-<div [ngSwitch]="todosType">
-  <app-all-todos-list *ngSwitchCase="'/list'" />
+<section [ngSwitch]="todosType">
+  <app-all-todos-list *ngSwitchCase="'/list'" [todos]="todos$" />
   <app-fav-todos-list *ngSwitchCase="'/favorite'" />
-</div>
+</section>
